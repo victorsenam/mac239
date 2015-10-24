@@ -1,54 +1,57 @@
 from pyeda.inter import *
 from functools import reduce
+from itertools import combinations
 
-def isVal (i, j, n):
-    if (i < 0 or i >= n):
-        return False
-    if (j < 0 or j >= n):
-        return False
-    return True
+n, k = map(int, input().split())
 
-# lendo entrada
-n,k = map(int, input().split())
+x   = exprvars('grid', n, n)
+sol =  bddvars('grid', n, n)
+diagonals = []
+clauses   = []
 
-# inicializando variáveis de expressão
-X = exprvars('x', n, n)
+for i in range(-n,n):
+    main_diagonal = []
+    for j in range(n):
+        if( 0 <= i+j and i+j<n ):
+            main_diagonal.append([i+j,j])
+    if( len(main_diagonal) > 1):
+        diagonals.append(main_diagonal)
+for i in range(0,2*n):
+    anti_diagonal = []
+    for j in range(n):
+        if( 0 <= i-j and i-j < n ):
+            anti_diagonal.append([i-j,j])
+    if( len(anti_diagonal) > 1 ):
+        diagonals.append(anti_diagonal)
 
-# vetor de clauses
-clauses = []
-
-# montando a CNF
 for i in range(n):
-    # no mínimo 1 rainha por linha
-    clauses.append(reduce(Or, [X[i][j] for j in range(n)]))
+    clauses.append(reduce(Or, [x[i][j] for j in range(n)]))
+    for ii, ij in combinations(range(n),2):
+        clauses.append(Or(Not(x[i][ii]), Not(x[i][ij])))
 
-    # no mínimo 1 rainha por coluna
-    clauses.append(reduce(Or,[X[j][i] for j in range(n)]))
+for j in range(n):
+    clauses.append(reduce(Or, [x[i][j] for i in range(n)]))
+    for ii, ij in combinations(range(n),2):
+        clauses.append(Or(Not(x[ii][j]), Not(x[ij][j])))
 
-    # no máximo 1 rainha por linha
-    for j in range(n):
-        clauses.append(reduce(Or,[Not(X[i][k]) for k in range(n) if j != k]))
+for diagonal in diagonals:
+    for posi, posj in combinations(diagonal, 2):
+        clauses.append(Or(Not(x[posi[0]][posi[1]]),Not(x[posj[0]][posj[1]])))
 
-    # no máximo 1 rainha por coluna
-    for j in range(n):
-        clauses.append(reduce(Or,[Not(X[k][i]) for k in range(n) if j != k]))
-
-    # no máximo 1 rainha por diagonal (paralela à principal)
-    for j in range(n):
-        clauses.append(reduce(Or, [Not(X[i+k][j+k]) for k in range(-n,n) if k != 0 and isVal(i+k, j+k, n)]))
-
-    # no máximo 1 rainha por diagonal (paralela à secundária)
-    for j in range(n):
-        clauses.append(reduce(Or,[Not(X[i+k][j-k]) for k in range(0,2*n) if k != 0 and isVal(i+k, j-k, n)]))
-
-f = reduce(And,clauses)
-print (clauses)
-print (f.is_cnf())
-
-f = expr2bdd(f)
-
-# insatisfatível
-if f.is_zero():
-    print ("UNSAT")
+f = reduce(And, clauses)
+print(len(clauses))
+tree = expr2bdd(f)
+if tree.is_zero():
+    print("UNSAT")
 else:
-    print ("SAT")
+    print("SAT")
+    chosen_in = tree.satisfy_one()
+    for i in range(n):
+        line = ""
+        for j in range(n):
+            if ( chosen_in[sol[i,j]] ):
+                line += ' Q '
+            else:
+                line += ' . '
+        print(line)
+
