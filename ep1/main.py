@@ -1,3 +1,8 @@
+## EP1 - MAC0329
+# Nathan Benedetto Proença - 8941276
+# Victor Sena Molero - 8941317
+
+
 from pyeda.inter import *
 from functools import reduce
 from itertools import combinations
