@@ -8,6 +8,8 @@ import re
 n      = int(input())
 edges  = re.sub('[\s+]', '', input())
 labels = re.sub('[\s+]', '', input())
+tree   = CTLtree(input())
+tgt    = int(input())
 
 # Lista ordenada das variaveis que ocorreram na entrada
 variables = list(set(re.sub('[\[\]\(\)"]', '', labels).split(",")))
@@ -42,17 +44,4 @@ for edge in edges:
     u, v = map(int, edge.split(","))
     model.append(S[u] & pS[v])
 model = disjunction(model)
-
-# Le estados os quais devemos procurar pre imagem
-tgt = map(int,input().split())
-B = disjunction(list(map(lambda u: pS[u], tgt)))
-
-# Calcula pre imagem
-pre = exists(B & model, x)
-
-# Imprime lista de estados na pre imagem
-ans = []
-for u in range(len(S)):
-    if((S[u] & ~pre).is_zero()): # Testa se estado contido
-        ans.append(u)
-print(ans)
+print(sat(S, tree))

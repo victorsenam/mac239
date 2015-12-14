@@ -1,5 +1,6 @@
 from pyeda.inter  import *
 from functools    import reduce
+from parser       import CTLtree
 
 def negation(list_of_literals):
     return list(map(lambda a: ~a, list_of_literals))

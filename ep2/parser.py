@@ -62,6 +62,21 @@ class CTLtree():
 		if c == "A" or c == "E":
 			c += formula[1]
 			l=2	
+		# Equivalencias usadas no SAT
+		if c=="AX":
+			return "-", [CTLtree("EX - " + formula[l:])]
+		if c=="EF":
+			return "EU", [CTLtree("1"), CTLtree(formula[l:])]
+		if c=="EG":
+			return "-", [CTLtree("AF - " + formula[l:])]
+		if c=="AG":
+			return "-", [CTLtree("EF - " + formula[l:])]
+		if c=="AU":
+			quebra = CTLtree.separa(formula[l:])
+			c1 = formula[l+1:l+quebra-1]
+			c2 = formula[l+quebra+1:-1]
+			return "-", [CTLtree("+(EU(-"+c1+")(*(-"+c1+")(-"+c2+")))(-AF" + c2 + ")")]
+
 
 		if c == "+" or c == "*" or c == "AU" or c == "EU":
 			kind = c
