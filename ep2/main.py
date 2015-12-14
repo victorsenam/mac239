@@ -9,7 +9,7 @@ n      = int(input())
 edges  = re.sub('[\s+]', '', input())
 labels = re.sub('[\s+]', '', input())
 tree   = CTLtree(input())
-tgt    = int(input())
+tgt    = re.sub('[\s+]', '', input())
 
 # Lista ordenada das variaveis que ocorreram na entrada
 variables = list(set(re.sub('[\[\]\(\)"]', '', labels).split(",")))
@@ -19,6 +19,8 @@ edges  = edges[2:-2].split("),(")
 # Conjunto de labels que sao verdadeiras em cada estado
 labels = labels[2:-2].split("),(")
 labels = list(map(lambda label: set(label[1:-1].split('","')), labels))
+# Descricao do estado objetivo
+tgt    = set(tgt[2:-2].split('","'))
 
 x = bddvars('x', len(variables), 2)
 
@@ -44,4 +46,58 @@ for edge in edges:
     u, v = map(int, edge.split(","))
     model.append(S[u] & pS[v])
 model = disjunction(model)
-print(sat(S, tree))
+
+def sat_ex(tree):
+	ans = set()
+	B   = disjunction(list(map(lambda i: pS[i], sat(tree))))
+	pre = exists(B & model, x)
+	for i in range(n):
+		if (S[i] & ~pre).is_zero():
+			ans.add(i)
+	return ans
+
+def sat_af(tree):
+	last = set(range(n))
+	ans = sat(tree)
+	while last != ans:
+		last = ans
+		B   = disjunction(list(map(lambda i: ~pS[i], last)))
+		pre = exists(B & model, x)
+		for i in range(n):
+			if not (S[i] & ~pre).is_zero():
+				ans.add(i)
+	return ans
+
+def sat_eu(tree0, tree1):
+	aux0 = sat(tree0)
+	last = set(range(n))
+	ans  = sat(tree1)
+	while last != ans:
+		last = ans
+		B    = disjunction(list(map(lambda i: pS[i], last)))
+		pre  = exists(B & model, x)
+		for i in range(n):
+			if (S[i] & ~pre).is_zero() and (i in aux0):
+				ans.add(i)
+	return ans
+
+def sat(tree):
+	if tree.kind == "0": return set()
+	if tree.kind == "1": return set(range(n))
+	if tree.kind[0] == "x":
+		sol = disjunction(S) & x[variables.index(tree.kind),0]
+		ans = set()
+		for i in range(n):
+			if (S[i] & ~sol).is_zero():
+				ans.add(i)
+		return ans
+	if tree.kind == "-":  return set(range(n))-sat(tree.childs[0])
+	if tree.kind == "+":  return sat(tree.childs[0]) | sat(tree.childs[1])
+	if tree.kind == "*":  return sat(tree.childs[0]) & sat(tree.childs[1])
+	if tree.kind == "EX": return sat_ex(tree.childs[0])
+	if tree.kind == "EU": return sat_eu(tree.childs[0], tree.childs[1])
+	if tree.kind == "AF": return sat_af(tree.childs[0])
+
+ans = list(map(lambda i: labels[i], sat(tree)))
+print(ans)
+print(tgt in ans)
