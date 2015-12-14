@@ -1,3 +1,5 @@
+# 8941276 Nathan Benedetto Proença
+# 8941317 Victor Sena Molero
 from pyeda.inter  import *
 from parser       import CTLtree
 from functools    import reduce

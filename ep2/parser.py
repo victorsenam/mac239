@@ -1,3 +1,6 @@
+# 8941276 Nathan Benedetto Proença
+# 8941317 Victor Sena Molero
+
 # Classe CTLtree com a estrutura em árvore de fórmulas CTL
 
 # A variável "kind" é o a operação da fórmula, podendo ser "+", "*", "-", 
