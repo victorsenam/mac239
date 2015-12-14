@@ -60,7 +60,7 @@ def sat_af(tree):
 	last = set(range(n))
 	ans = sat(tree)
 	while last != ans:
-		last = ans
+		last = set(ans)
 		B   = disjunction(list(map(lambda i: ~pS[i], last)))
 		pre = exists(B & model, x)
 		for i in range(n):
@@ -69,34 +69,33 @@ def sat_af(tree):
 	return ans
 
 def sat_eu(tree0, tree1):
-	aux0 = sat(tree0)
+	aux  = sat(tree0)
 	last = set(range(n))
 	ans  = sat(tree1)
 	while last != ans:
-		last = ans
+		last = set(ans)
 		B    = disjunction(list(map(lambda i: pS[i], last)))
 		pre  = exists(B & model, x)
 		for i in range(n):
-			if (S[i] & ~pre).is_zero() and (i in aux0):
+			if(S[i] & ~pre).is_zero():
 				ans.add(i)
 	return ans
 
 def sat(tree):
-	if tree.kind == "0": return set()
-	if tree.kind == "1": return set(range(n))
-	if tree.kind[0] == "x":
+	ans = set()
+	if tree.kind == "1": ans = set(range(n))
+	elif tree.kind[0] == "x":
 		sol = disjunction(S) & x[variables.index(tree.kind),0]
-		ans = set()
 		for i in range(n):
 			if (S[i] & ~sol).is_zero():
 				ans.add(i)
-		return ans
-	if tree.kind == "-":  return set(range(n))-sat(tree.childs[0])
-	if tree.kind == "+":  return sat(tree.childs[0]) | sat(tree.childs[1])
-	if tree.kind == "*":  return sat(tree.childs[0]) & sat(tree.childs[1])
-	if tree.kind == "EX": return sat_ex(tree.childs[0])
-	if tree.kind == "EU": return sat_eu(tree.childs[0], tree.childs[1])
-	if tree.kind == "AF": return sat_af(tree.childs[0])
+	elif tree.kind == "-":  ans = set(range(n))-sat(tree.childs[0])
+	elif tree.kind == "+":  ans = sat(tree.childs[0]) | sat(tree.childs[1])
+	elif tree.kind == "*":  ans = sat(tree.childs[0]) & sat(tree.childs[1])
+	elif tree.kind == "EX": ans = sat_ex(tree.childs[0])
+	elif tree.kind == "EU": ans = sat_eu(tree.childs[0], tree.childs[1])
+	elif tree.kind == "AF": ans = sat_af(tree.childs[0])
+	return ans
 
 ans = list(map(lambda i: labels[i], sat(tree)))
 print(ans)
