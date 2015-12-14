@@ -76,7 +76,7 @@ def sat_eu(tree0, tree1):
 		last = set(ans)
 		B    = disjunction(list(map(lambda i: pS[i], last)))
 		pre  = exists(B & model, x)
-		for i in range(n):
+		for i in aux:
 			if(S[i] & ~pre).is_zero():
 				ans.add(i)
 	return ans
